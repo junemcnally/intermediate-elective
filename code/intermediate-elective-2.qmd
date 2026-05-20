@@ -1,1 +1,38 @@
+---
+title: "Intermediate Elective 2"
+author: June McNally
+date: 2026-05-10
+format: pdf
+execute:
+  warning: false
+  message: false
+---
+
+
+# Set Up
+
+## Packages
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+
+```{r}
+aquatic_data <- read_excel("../data/Aquatic Sampling Data-2026-03-10 (5).xlsx")
+taxon_list <- read_csv("../data/taxon_list.csv")
+```
+
+```{r}
+list.files("../data")
+```
+
+```{r}
+aquatic_data <- read_excel("../data/Aquatic Sampling Data-2026-03-10 (5).xlsx")
+taxon_list <- read_csv("../data/taxon_list.csv")
+```
+```{r}
+list.files("../data")
+```
 
