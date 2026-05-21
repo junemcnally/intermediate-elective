@@ -16,33 +16,42 @@ execute:
 ```{r}
 library(tidyverse)
 library(readxl)
+library(ggtext)
+```
+```{r}
+library(tidyverse)
+library(readxl)
+library(ggtext)
+library(here)
 ```
 
 
 ```{r}
-aquatic_data <- read_excel("../data/Aquatic Sampling Data-2026-03-10 (5).xlsx")
+aquatic_data <- read_excel("../data/aquatic_data.xlsx")
 taxon_list <- read_csv("../data/taxon_list.csv")
 ```
 
+#Problems:
+I chose a South China Morning Post–style timeseries line chart, inspired by Steven Ponce's "Coal falls. Renewables rise." visualization, which tracks how proportions of different categories change over time on a dark background with colored lines.
+
+
+The Aquatic Insects sheet spans 2020–2025 with counts of invertebrate taxa across multiple sites, making a proportion timeseries ideal for showing how the relative community composition shifts year over year.
+
+
+Year is mapped to the x-axis, proportion of total count to the y-axis, and taxon group (Copepod, Ostracod, Cladocera, Amphipod, Chironomid) to line color.
+
 ```{r}
-list.files("../data")
+insects <- read_excel("../data/aquatic_data.xlsx",
+                      sheet = "Aquatic Insects")
 ```
 
 ```{r}
-aquatic_data <- read_excel("../data/Aquatic Sampling Data-2026-03-10 (5).xlsx")
-taxon_list <- read_csv("../data/taxon_list.csv")
-```
-```{r}
-list.files("../data")
+aquatic_data <- read_excel(here("data", "aquatic_data.xlsx"))
+taxon_list <- read_csv(here("data", "taxon_list.csv"))
 ```
 
 ```{r}
-list.files("../data")
-list.files(".")
+insects <- read_excel(here("data", "aquatic_data.xlsx"), 
+                      sheet = "Aquatic Insects")
 ```
-
-```{r}
-list.files("~/git/intermediate-elective", recursive = TRUE)
-```
-
 
