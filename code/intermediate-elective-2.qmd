@@ -36,3 +36,13 @@ taxon_list <- read_csv("../data/taxon_list.csv")
 list.files("../data")
 ```
 
+```{r}
+list.files("../data")
+list.files(".")
+```
+
+```{r}
+list.files("~/git/intermediate-elective", recursive = TRUE)
+```
+
+
