@@ -57,9 +57,10 @@ taxon_list <- read_csv(here("data", "taxon_list.csv"))
 ```
 
 ```{r}
-insects <- read_excel(here("data", "aquatic_data.xlsx"), 
-                      sheet = "Aquatic Insects")
+insects <- read_excel(here("data", "aquatic_data.xlsx"), sheet = "Aquatic Insects")
+names(insects)
 ```
+
 ```{r}
 ```{r}
 # Read the Aquatic Insects sheet from the Excel file
@@ -68,7 +69,7 @@ insects <- read_excel(here("data", "aquatic_data.xlsx"),
 
 # Define the five key taxa we want to visualize
 key_taxa <- c("Copepod", "Ostracod", "Cladocera", 
-              "Amphipod", "Diptera: Chironomid ")
+              "Amphipod", "Diptera: Chironomid")
 
 # Wrangle data: pivot to long format and calculate 
 # proportion of each taxon per year
