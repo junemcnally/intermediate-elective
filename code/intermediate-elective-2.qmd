@@ -44,7 +44,7 @@ Year is mapped to the x-axis, proportion of total count to the y-axis, and taxon
 2. Plan Your Figure
 ## Sketch
 
-![My figure sketIMG_6449.jpeg.jpg)
+![My figure sketIMG_6449.jpeg)
 
 ```{r}
 insects <- read_excel("../data/aquatic_data.xlsx",
@@ -59,5 +59,81 @@ taxon_list <- read_csv(here("data", "taxon_list.csv"))
 ```{r}
 insects <- read_excel(here("data", "aquatic_data.xlsx"), 
                       sheet = "Aquatic Insects")
+```
+```{r}
+```{r}
+# Read the Aquatic Insects sheet from the Excel file
+insects <- read_excel(here("data", "aquatic_data.xlsx"),
+                      sheet = "Aquatic Insects")
+
+# Define the five key taxa we want to visualize
+key_taxa <- c("Copepod", "Ostracod", "Cladocera", 
+              "Amphipod", "Diptera: Chironomid ")
+
+# Wrangle data: pivot to long format and calculate 
+# proportion of each taxon per year
+plot_data <- insects %>%
+  select(`Date on Vial`, all_of(key_taxa)) %>%
+  rename(Date = `Date on Vial`) %>%
+  filter(!is.na(Date)) %>%
+  mutate(Date = as.Date(Date), Year = year(Date)) %>%
+  pivot_longer(cols = all_of(key_taxa), 
+               names_to = "taxon", values_to = "count") %>%
+  mutate(count = replace_na(count, 0),
+         taxon = str_trim(taxon),
+         taxon = if_else(taxon == "Diptera: Chironomid", 
+                         "Chironomid", taxon)) %>%
+  group_by(Year, taxon) %>%
+  summarise(total = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(Year) %>%
+  mutate(proportion = total / sum(total) * 100) %>%
+  ungroup() %>%
+  filter(Year >= 2020, Year <= 2025)
+
+# Define colors for each taxon
+colors <- c("Copepod" = "#E63946", "Ostracod" = "#2A9D8F",
+            "Cladocera" = "#E9C46A", "Amphipod" = "#F4A261",
+            "Chironomid" = "#457B9D")
+
+# Get the last year's values for direct line labeling
+labels <- plot_data %>% filter(Year == max(Year))
+
+# Build the plot
+ggplot(plot_data, aes(x = Year, y = proportion, color = taxon)) +
+  # Add lines and points for each taxon
+  geom_line(linewidth = 1.4) +
+  geom_point(size = 2.5) +
+  # Add direct labels at end of each line instead of a legend
+  geom_text(data = labels, aes(label = taxon),
+            hjust = -0.1, size = 3.2, fontface = "bold") +
+  # Apply custom colors
+  scale_color_manual(values = colors) +
+  # Format x and y axes
+  scale_x_continuous(breaks = 2020:2025,
+                     expand = expansion(mult = c(0.02, 0.25))) +
+  scale_y_continuous(labels = scales::label_number(suffix = "%")) +
+  # Add titles and labels
+  labs(title = "**Aquatic invertebrate composition over time**",
+       subtitle = "Proportion of five key taxa, 2020–2025",
+       x = NULL, y = "% of total count",
+       caption = "Data: Goleta Slough Aquatic Sampling") +
+  # Apply dark theme styling
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background  = element_rect(fill = "#0D1B2A", color = NA),
+    panel.background = element_rect(fill = "#0D1B2A", color = NA),
+    text             = element_text(color = "white"),
+    plot.title       = element_markdown(size = 14, color = "white"),
+    plot.subtitle    = element_text(color = "#AAAAAA", size = 10),
+    plot.caption     = element_text(color = "#666666", size = 8),
+    axis.text        = element_text(color = "#AAAAAA"),
+    panel.grid.major = element_line(color = "#1E3A5F"),
+    panel.grid.minor = element_blank(),
+    legend.position  = "none"
+  )
+
+# Save the final figure as a png file
+ggsave(here("code", "aquatic_viz.png"), width = 8, height = 5, dpi = 300)
+```
 ```
 
