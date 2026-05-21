@@ -46,6 +46,8 @@ Year is mapped to the x-axis, proportion of total count to the y-axis, and taxon
 
 ![My figure sketIMG_6449.jpeg)
 
+3.Code your figure 
+
 ```{r}
 insects <- read_excel("../data/aquatic_data.xlsx",
                       sheet = "Aquatic Insects")
@@ -136,5 +138,24 @@ ggplot(plot_data, aes(x = Year, y = proportion, color = taxon)) +
 # Save the final figure as a png file
 ggsave(here("code", "aquatic_viz.png"), width = 8, height = 5, dpi = 300)
 ```
-```
+
+#Problems Continued
+4. Describe your process
+
+I adapted Steven Ponce's ggplot2 timeseries code by replacing his 
+energy dataset with aquatic invertebrate sampling data from Goleta 
+Slough, adjusting the color palette, and modifying the axis labels 
+and annotations to fit the new context.
+
+The biggest challenge was file path errors — getting R to find the 
+data files correctly during rendering required switching from 
+relative paths to the `here` package. I also had to find the exact 
+column name for the Chironomid taxon since it had an unexpected 
+trailing space.
+
+Unlike simpler ggplot figures from class, this visualization uses a 
+custom dark theme, direct line labeling instead of a legend, and 
+`ggtext` for markdown formatting in the title — techniques I had 
+not used before.
+
 
