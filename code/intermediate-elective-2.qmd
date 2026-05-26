@@ -41,10 +41,8 @@ I chose a South China Morning Post–style timeseries line chart, inspired by St
 
 ## 3.Code your figure 
 
-3. Code your figure
-
 ```{r}
-# Load the Aquatic Insects sheet specifically — the Excel file has multiple sheets
+# Load the aquatic sheet
 insects <- read_excel(here("data", "aquatic_data.xlsx"),
                       sheet = "Aquatic Insects")
 ```
@@ -97,12 +95,12 @@ colors <- c("Copepod" = "#E63946", "Ostracod" = "#2A9D8F",
 # Pull out the final year's data to use for end-of-line labels
 labels <- plot_data %>% filter(Year == max(Year))
 
-# Build the plot
+# Building the plot
 ggplot(plot_data, aes(x = Year, y = proportion, color = taxon)) +
   # Draw a line and point for each taxon across years
   geom_line(linewidth = 1.4) +
   geom_point(size = 2.5) +
-  # Label each line directly at its endpoint instead of using a legend
+  # Labeling each line directly at its endpoint instead of using a legend
   geom_text(data = labels, aes(label = taxon),
             hjust = -0.1, size = 3.2, fontface = "bold") +
   # Apply the custom color palette defined above
@@ -144,7 +142,7 @@ ggsave(here("code", "aquatic_viz.png"), width = 8, height = 5, dpi = 300)
 4. Describing the process
 
 I adapted Steven Ponce's ggplot2 timeseries code by replacing his energy dataset with aquatic invertebrate sampling data from Goleta Slough, adjusting the color palette, and modifying the axis labels and annotations to fit the new context.
-The biggest challenge was file path errors — getting R to find the data files correctly during rendering required switching from relative paths to the `here` package. I also had to find the exact column name for the Chironomid taxon since it had an unexpected trailing space.
-Unlike simpler ggplot figures from class, this visualization uses a custom dark theme, direct line labeling instead of a legend, and `ggtext` for markdown formatting in the title — techniques I had not used before.
+The biggest challenge was file path errors. Getting R to find the data files correctly during rendering required switching from relative paths to the here package. I also had to find the exact column name for the Chironomid taxon since it had an unexpected trailing space. I used Claude to help 
+Unlike simpler ggplot figures from class, this visualization uses a custom dark theme, direct line labeling instead of a legend, and ggtext for markdown formatting in the title, which are techniques I hadn't used before.
 
 
