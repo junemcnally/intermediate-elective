@@ -1,13 +1,12 @@
 ---
 title: "Intermediate Elective 2"
-author: June McNally
-date: 2026-05-10
+author: "June McNally"
+date: "2026-05-10"
 format: pdf
 execute:
   warning: false
   message: false
 ---
-
 
 # Set Up
 
@@ -16,146 +15,136 @@ execute:
 ```{r}
 library(tidyverse)
 library(readxl)
-library(ggtext)
-```
-```{r}
-library(tidyverse)
-library(readxl)
+library(ggplot2)
 library(ggtext)
 library(here)
 ```
 
+## Data
 
 ```{r}
 aquatic_data <- read_excel("../data/aquatic_data.xlsx")
 taxon_list <- read_csv("../data/taxon_list.csv")
 ```
 
-#Problems:
-1. Explain Your Inspriation
-I chose a South China Morning Post–style timeseries line chart, inspired by Steven Ponce's "Coal falls. Renewables rise." visualization, which tracks how proportions of different categories change over time on a dark background with colored lines.
+# Problems:
 
+## 1. Explain Your Inspiration
 
-The Aquatic Insects sheet spans 2020–2025 with counts of invertebrate taxa across multiple sites, making a proportion timeseries ideal for showing how the relative community composition shifts year over year.
+I chose a South China Morning Post–style timeseries line chart, inspired by Steven Ponce's "Coal falls. Renewables rise." visualization, which tracks how proportions of different categories change over time on a dark background with colored lines. The Aquatic Insects sheet spans 2020–2025 with counts of invertebrate taxa across multiple sites, making a proportion timeseries ideal for showing how the relative community composition shifts year over year. Year is mapped to the x-axis, proportion of total count to the y-axis, and taxon group (Copepod, Ostracod, Cladocera, Amphipod, Chironomid) to line color.
 
+## 2. Plan Your Figure
 
-Year is mapped to the x-axis, proportion of total count to the y-axis, and taxon group (Copepod, Ostracod, Cladocera, Amphipod, Chironomid) to line color.
-
-2. Plan Your Figure
 ## Sketch
 
-![My figure sketIMG_6449.jpeg)
+![My figure sketch](IMG_8747.jpeg)
 
-3.Code your figure 
+## 3.Code your figure 
+
+3. Code your figure
 
 ```{r}
-insects <- read_excel("../data/aquatic_data.xlsx",
+# Load the Aquatic Insects sheet specifically — the Excel file has multiple sheets
+insects <- read_excel(here("data", "aquatic_data.xlsx"),
                       sheet = "Aquatic Insects")
 ```
 
 ```{r}
-aquatic_data <- read_excel(here("data", "aquatic_data.xlsx"))
-taxon_list <- read_csv(here("data", "taxon_list.csv"))
-```
-
-```{r}
-insects <- read_excel(here("data", "aquatic_data.xlsx"), sheet = "Aquatic Insects")
+# Check column names to find exact spelling of taxon columns
 names(insects)
 ```
 
 ```{r}
-```{r}
-# Read the Aquatic Insects sheet from the Excel file
-insects <- read_excel(here("data", "aquatic_data.xlsx"),
-                      sheet = "Aquatic Insects")
-
 # Define the five key taxa we want to visualize
+# Note: Chironomid is stored as "Diptera: Chironomid" in the raw data
 key_taxa <- c("Copepod", "Ostracod", "Cladocera", 
               "Amphipod", "Diptera: Chironomid")
 
-# Wrangle data: pivot to long format and calculate 
-# proportion of each taxon per year
+# Wrangle data into long format and calculate proportion of each taxon per year
 plot_data <- insects %>%
+  # Keep only the date column and our five taxa of interest
   select(`Date on Vial`, all_of(key_taxa)) %>%
+  # Rename for easier reference
   rename(Date = `Date on Vial`) %>%
+  # Remove rows with no date (likely empty rows in the Excel file)
   filter(!is.na(Date)) %>%
+  # Convert date column to Date type, then extract just the year
   mutate(Date = as.Date(Date), Year = year(Date)) %>%
+  # Pivot from wide (one column per taxon) to long (one row per taxon per date)
   pivot_longer(cols = all_of(key_taxa), 
                names_to = "taxon", values_to = "count") %>%
+  # Replace any missing counts with 0, trim whitespace from taxon names,
+  # and shorten "Diptera: Chironomid" to just "Chironomid" for cleaner labels
   mutate(count = replace_na(count, 0),
          taxon = str_trim(taxon),
          taxon = if_else(taxon == "Diptera: Chironomid", 
                          "Chironomid", taxon)) %>%
+  # Sum counts for each taxon within each year across all sites
   group_by(Year, taxon) %>%
   summarise(total = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  # Calculate each taxon's share of the total count for that year
   group_by(Year) %>%
   mutate(proportion = total / sum(total) * 100) %>%
   ungroup() %>%
+  # Keep only the study period of interest
   filter(Year >= 2020, Year <= 2025)
 
-# Define colors for each taxon
+# Assign a distinct color to each taxon for the plot
 colors <- c("Copepod" = "#E63946", "Ostracod" = "#2A9D8F",
             "Cladocera" = "#E9C46A", "Amphipod" = "#F4A261",
             "Chironomid" = "#457B9D")
 
-# Get the last year's values for direct line labeling
+# Pull out the final year's data to use for end-of-line labels
 labels <- plot_data %>% filter(Year == max(Year))
 
 # Build the plot
 ggplot(plot_data, aes(x = Year, y = proportion, color = taxon)) +
-  # Add lines and points for each taxon
+  # Draw a line and point for each taxon across years
   geom_line(linewidth = 1.4) +
   geom_point(size = 2.5) +
-  # Add direct labels at end of each line instead of a legend
+  # Label each line directly at its endpoint instead of using a legend
   geom_text(data = labels, aes(label = taxon),
             hjust = -0.1, size = 3.2, fontface = "bold") +
-  # Apply custom colors
+  # Apply the custom color palette defined above
   scale_color_manual(values = colors) +
-  # Format x and y axes
+  # Show every year as a tick mark; expand right side to make room for labels
   scale_x_continuous(breaks = 2020:2025,
                      expand = expansion(mult = c(0.02, 0.25))) +
+  # Format y-axis values as percentages
   scale_y_continuous(labels = scales::label_number(suffix = "%")) +
-  # Add titles and labels
+  # Add title (uses markdown bold via ggtext), subtitle, axis label, and caption
   labs(title = "**Aquatic invertebrate composition over time**",
        subtitle = "Proportion of five key taxa, 2020–2025",
        x = NULL, y = "% of total count",
        caption = "Data: Goleta Slough Aquatic Sampling") +
-  # Apply dark theme styling
+  # Start with a minimal theme, then customize for a dark background look
   theme_minimal(base_size = 12) +
   theme(
+    # Dark navy background for both the plot panel and surrounding area
     plot.background  = element_rect(fill = "#0D1B2A", color = NA),
     panel.background = element_rect(fill = "#0D1B2A", color = NA),
+    # Default all text to white so it's readable on the dark background
     text             = element_text(color = "white"),
+    # element_markdown() needed here to render the ** bold ** in the title
     plot.title       = element_markdown(size = 14, color = "white"),
     plot.subtitle    = element_text(color = "#AAAAAA", size = 10),
     plot.caption     = element_text(color = "#666666", size = 8),
     axis.text        = element_text(color = "#AAAAAA"),
+    # Subtle grid lines that show up on the dark background
     panel.grid.major = element_line(color = "#1E3A5F"),
     panel.grid.minor = element_blank(),
+    # Hide the legend since lines are labeled directly
     legend.position  = "none"
   )
 
-# Save the final figure as a png file
+# Save the finished figure to the code folder as a high-resolution PNG
 ggsave(here("code", "aquatic_viz.png"), width = 8, height = 5, dpi = 300)
 ```
 
-#Problems Continued
-4. Describe your process
+4. Describing the process
 
-I adapted Steven Ponce's ggplot2 timeseries code by replacing his 
-energy dataset with aquatic invertebrate sampling data from Goleta 
-Slough, adjusting the color palette, and modifying the axis labels 
-and annotations to fit the new context.
-
-The biggest challenge was file path errors — getting R to find the 
-data files correctly during rendering required switching from 
-relative paths to the `here` package. I also had to find the exact 
-column name for the Chironomid taxon since it had an unexpected 
-trailing space.
-
-Unlike simpler ggplot figures from class, this visualization uses a 
-custom dark theme, direct line labeling instead of a legend, and 
-`ggtext` for markdown formatting in the title — techniques I had 
-not used before.
+I adapted Steven Ponce's ggplot2 timeseries code by replacing his energy dataset with aquatic invertebrate sampling data from Goleta Slough, adjusting the color palette, and modifying the axis labels and annotations to fit the new context.
+The biggest challenge was file path errors — getting R to find the data files correctly during rendering required switching from relative paths to the `here` package. I also had to find the exact column name for the Chironomid taxon since it had an unexpected trailing space.
+Unlike simpler ggplot figures from class, this visualization uses a custom dark theme, direct line labeling instead of a legend, and `ggtext` for markdown formatting in the title — techniques I had not used before.
 
 
